@@ -10,3 +10,7 @@
 ---
 
 This project aims to combine graph theory, machine learning, and statistical physics to analyze and understand the dynamics of the Bitcoin blockchain and its response to significant events in the cryptocurrency world.
+
+## License
+
+[MIT License](https://choosealicense.com/licenses/mit/)

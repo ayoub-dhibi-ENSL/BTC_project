@@ -1,4 +1,5 @@
 import pyspark.pandas as ps  # type: ignore
+from graphframes import GraphFrame  # type: ignore
 
 
 def create_degree_col(
@@ -57,7 +58,9 @@ def create_degree_col(
 
 def get_vertices_and_density(pydf, src_colname, dst_colname):
     """
-    Compute the density of a graph represented by transaction data.
+    Extracts unique node IDs from transaction data, computes the total number of nodes,
+    and calculates the density of the directed graph formed by the transactions.
+
     Parameters
     ----------
     pydf : polars.DataFrame
@@ -79,7 +82,7 @@ def get_vertices_and_density(pydf, src_colname, dst_colname):
     Graph density is defined as the ratio of the number of edges to the number of possible edges in a directed graph.
     """
     IDS = ps.concat(
-        [pydf["SRC_ID"], pydf["DST_ID"]]
+        [pydf[src_colname], pydf[dst_colname]]
     ).unique()  # gets the all the IDs that were in a transaction i.e. all the different nodes of the graph
 
     number_of_nodes = IDS.size
@@ -117,3 +120,41 @@ def get_PageRank(G):
     PageRankGraph = G.pageRank(resetProbability=0.15, tol=0.01)
     PageRank_df = PageRankGraph.vertices.select("id", "pagerank")
     return PageRank_df
+
+
+def pydf_to_graphframe(pydf, IDS, src_colname, dst_colname):
+    """
+    Converts a pandas-on-Spark DataFrame containing edge information into a GraphFrame object.
+
+    Parameters
+    ----------
+    IDS : pyspark.pandas.Series
+        Series containing unique vertex identifiers.
+    src_colname : str
+        Name of the column in the DataFrame representing source vertices.
+    dst_colname : str
+        Name of the column in the DataFrame representing destination vertices.
+
+    Returns
+    -------
+    G : GraphFrame
+        The constructed GraphFrame object.
+    VERTICES : pyspark.sql.DataFrame
+        PySpark DataFrame containing the vertices.
+    EDGES : pyspark.sql.DataFrame
+        PySpark DataFrame containing the edges with columns 'src' and 'dst'.
+
+    Notes
+    -----
+    The function assumes that the global variable `pydf` is a pandas-on-Spark DataFrame containing
+    the edge information, and that the GraphFrame library is available.
+    """
+
+    VERTICES = IDS.to_frame(name="id").to_spark()
+    EDGES = (
+        pydf[[src_colname, dst_colname]]
+        .rename(columns={src_colname: "src", dst_colname: "dst"})
+        .to_spark()
+    )  # Renaming columns according to graphframes doc
+    G = GraphFrame(VERTICES, EDGES)
+    return G, VERTICES, EDGES

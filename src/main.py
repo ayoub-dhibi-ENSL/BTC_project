@@ -2,8 +2,6 @@ import compute_centralities as cc
 import pyspark.pandas as ps  # type: ignore
 from pyspark.sql import SparkSession  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
-from graphframes import GraphFrame  # type: ignore
-
 
 spark = (
     SparkSession.builder.appName("PandasOnSparkExample")
@@ -26,14 +24,10 @@ spark = (
 
 pydf = ps.read_csv("../data/orbitaal-snapshot-2016_07_09.csv")
 
-
-# %%
 OUT_DEGREE, IN_DEGREE = cc.create_degree_col(pydf, "SRC_ID", "DST_ID")
-
 WEIGHTED_SATOSHI_OUT_DEGREE, WEIGHTED_SATOSHI_IN_DEGREE = cc.create_degree_col(
     pydf, "SRC_ID", "DST_ID", weighted=True, weight_colname="VALUE_SATOSHI"
 )
-
 WEIGHTED_USD_OUT_DEGREE, WEIGHTED_USD_IN_DEGREE = cc.create_degree_col(
     pydf, "SRC_ID", "DST_ID", weighted=True, weight_colname="VALUE_USD"
 )
@@ -52,11 +46,8 @@ for col in degree_columns:
 
 result = ps.concat(degree_columns, axis=1).fillna(0)
 
-# %% Plotting degrees distributions
-# Convert result to pandas DataFrame for plotting
 result_pd = result.to_pandas()
 
-# Plot histograms for each column
 for col in result_pd.columns:
     plt.figure(figsize=(8, 4))
     plt.hist(result_pd[col], bins=50, color="skyblue", edgecolor="black", log=True)
@@ -71,23 +62,12 @@ IDS, number_of_nodes, graph_density = cc.get_vertices_and_density(
     pydf, "SRC_ID", "DST_ID"
 )
 
-# %% Using GraphFrames to compute centralities
-VERTICES = IDS.to_frame(name="id").to_spark()
-EDGES = (
-    pydf[["SRC_ID", "DST_ID"]]
-    .rename(columns={"SRC_ID": "src", "DST_ID": "dst"})
-    .to_spark()
-)  # Renaming columns according to graphframes doc
 
+G, VERTICES, EDGES = cc.pydf_to_graphframe(pydf, IDS, "SRC_ID", "DST_ID")
 
-G = GraphFrame(VERTICES, EDGES)  # type: ignore  # noqa: F405
-
-# %% Connected components
 result = G.connectedComponents()
 connectedConmponents_df = result.select("id", "component")
 
-
-# %% Strongly connected components
 
 result2 = G.stronglyConnectedComponents(maxIter=2)
 SCC = result2.select("id", "component").orderBy("component")
