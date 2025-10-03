@@ -1,88 +1,119 @@
-# %% Imports
 import pyspark.pandas as ps  # type: ignore
-from pyspark.sql import SparkSession  # type: ignore
-import matplotlib.pyplot as plt  # type: ignore
 
-# %% Creating SparkSession and loading the data
-spark = (
-    SparkSession.builder.appName("PandasOnSparkExample")
-    .config("spark.sql.ansi.enabled", "false")  # disable ANSI mode
-    .config("spark.jars.packages", "io.graphframes:graphframes-spark4_2.13:0.9.3")
-    .getOrCreate()
-)
 
-# pydf_snapshot_year_2015 = ps.read_parquet(
-#     "../data/orbitaal-snapshot-year/SNAPSHOT/EDGES/year/*2015*.parquet"
-# )
-# pydf_snapshot_year_2015 = pydf_snapshot_year_2015.sample(
-#     frac=0.0001, random_state=42
-# )  # Sample x% of the data
+def create_degree_col(
+    pydf, src_colname, dst_colname, weighted=False, weight_colname=None
+):
+    """
+    Compute the in-degree and out-degree (weighted or unweighted) for nodes in a directed graph using pandas-on-Spark.
 
-pydf = ps.read_csv("../data/orbitaal-snapshot-2016_07_09.csv")
+    Parameters
+    ----------
+    pydf : pyspark.pandas.DataFrame
+        DataFrame containing the edge list of the graph.
+    src_colname : str
+        Name of the column representing the source nodes.
+    dst_colname : str
+        Name of the column representing the destination nodes.
+    weighted : bool, optional
+        If True, compute weighted degrees using the specified weight column. Default is False.
+    weight_colname : str, optional
+        Name of the column representing edge weights. Required if `weighted` is True.
 
-# %% Creating degree columns
-OUT_DEGREE = pydf.groupby("SRC_ID").size().rename("OUT_DEGREE")
-IN_DEGREE = pydf.groupby("DST_ID").size().rename("IN_DEGREE")
-WEIGHTED_SATOSHI_OUT_DEGREE = (
-    pydf.groupby("SRC_ID")["VALUE_SATOSHI"].sum().rename("WEIGHTED_SATOSHI_OUT_DEGREE")
-)
-WEIGHTED_SATOSHI_IN_DEGREE = (
-    pydf.groupby("DST_ID")["VALUE_SATOSHI"].sum().rename("WEIGHTED_SATOSHI_IN_DEGREE")
-)
-WEIGHTED_USD_OUT_DEGREE = (
-    pydf.groupby("SRC_ID")["VALUE_USD"].sum().rename("WEIGHTED_USD_OUT_DEGREE")
-)
-WEIGHTED_USD_IN_DEGREE = (
-    pydf.groupby("DST_ID")["VALUE_USD"].sum().rename("WEIGHTED_USD_IN_DEGREE")
-)
+    Returns
+    -------
+    out_degree : pyspark.pandas.Series
+        Series containing the out-degree (or weighted out-degree) for each source node.
+    in_degree : pyspark.pandas.Series
+        Series containing the in-degree (or weighted in-degree) for each destination node.
 
-degree_columns = [
-    OUT_DEGREE,
-    IN_DEGREE,
-    WEIGHTED_SATOSHI_OUT_DEGREE,
-    WEIGHTED_SATOSHI_IN_DEGREE,
-    WEIGHTED_USD_OUT_DEGREE,
-    WEIGHTED_USD_IN_DEGREE,
-]
+    Raises
+    ------
+    ValueError
+        If `weighted` is True and `weight_colname` is not provided.
+    """
+    if not weighted:
+        OUT_DEGREE = pydf.groupby(src_colname).size().rename("OUT_DEGREE")
+        IN_DEGREE = pydf.groupby(dst_colname).size().rename("IN_DEGREE")
 
-for col in degree_columns:
-    col.index.name = None
+        return OUT_DEGREE, IN_DEGREE
+    elif weighted and weight_colname is None:
+        raise ValueError(
+            "If 'weighted' is True, you must also provide 'weight_colname'."
+        )
+    else:
+        WEIGHTED_OUT_DEGREE = (
+            pydf.groupby(src_colname)[weight_colname]
+            .sum()
+            .rename(f"WEIGHTED_{weight_colname}_OUT_DEGREE")
+        )
+        WEIGHTED_IN_DEGREE = (
+            pydf.groupby(dst_colname)[weight_colname]
+            .sum()
+            .rename(f"WEIGHTED_{weight_colname}_IN_DEGREE")
+        )
+        return WEIGHTED_OUT_DEGREE, WEIGHTED_IN_DEGREE
 
-result = ps.concat(degree_columns, axis=1).fillna(0)
 
-# %% Plotting degrees distributions
-# Convert result to pandas DataFrame for plotting
-result_pd = result.to_pandas()
+def get_vertices_and_density(pydf, src_colname, dst_colname):
+    """
+    Compute the density of a graph represented by transaction data.
+    Parameters
+    ----------
+    pydf : polars.DataFrame
+        The DataFrame containing transaction data with columns for source and destination IDs.
+    src_colname : str
+        The name of the column representing source node IDs.
+    dst_colname : str
+        The name of the column representing destination node IDs.
+    Returns
+    -------
+    IDS : polars.Series
+        Unique node IDs present in the transactions.
+    number_of_nodes : int
+        The total number of unique nodes in the graph.
+    graph_density : float
+        The density of the graph, calculated as the ratio of the number of edges to the maximum possible number of edges.
+    Notes
+    -----
+    Graph density is defined as the ratio of the number of edges to the number of possible edges in a directed graph.
+    """
+    IDS = ps.concat(
+        [pydf["SRC_ID"], pydf["DST_ID"]]
+    ).unique()  # gets the all the IDs that were in a transaction i.e. all the different nodes of the graph
 
-# Plot histograms for each column
-for col in result_pd.columns:
-    plt.figure(figsize=(8, 4))
-    plt.hist(result_pd[col], bins=50, color="skyblue", edgecolor="black", log=True)
-    plt.title(f"Histogram of {col}")
-    plt.xlabel(col)
-    plt.ylabel("Frequency (log scale)")
-    plt.tight_layout()
-    plt.show()
+    number_of_nodes = IDS.size
+    graph_density = pydf.size / (number_of_nodes * (number_of_nodes - 1))
 
-# %% Getting the vertices identifiers
-IDS = ps.concat(
-    [pydf["SRC_ID"], pydf["DST_ID"]]
-).unique()  # gets the all the IDs that were in a transaction i.e. all the different nodes of the graph
+    return (IDS, number_of_nodes, graph_density)
 
-number_of_nodes = IDS.size
-graph_density = pydf.size / (number_of_nodes * (number_of_nodes - 1))
 
-# %% Using GraphFrames to compute centralities
-from graphframes import *
+def get_PageRank(G):
+    """
+    Computes the PageRank centrality for each vertex in the given graph.
 
-VERTICES = IDS.to_frame(name="id").to_spark()
-EDGES = (
-    pydf[["SRC_ID", "DST_ID"]]
-    .rename(columns={"SRC_ID": "src", "DST_ID": "dst"})
-    .to_spark()
-)  # Renaming columns according to graphframes doc
-# %% Creating the graph
-G = GraphFrame(VERTICES, EDGES)  # type: ignore
-PageRankGraph = G.pageRank(resetProbability=0.15, tol=0.01)
+    Wraps the GraphFrame `pageRank` method to calculate PageRank scores
+    for all vertices in the input graph and returns the results as a DataFrame
+    containing vertex IDs and their corresponding PageRank values.
 
-# %%
+    Parameters
+    ----------
+    G : GraphFrame
+        The input graph as a GraphFrame object.
+
+    Returns
+    -------
+    PageRank_df : pyspark.sql.DataFrame
+        A DataFrame with two columns:
+            - 'id': The vertex identifier.
+            - 'pagerank': The computed PageRank score for the vertex.
+
+    Notes
+    -----
+    - The PageRank algorithm is run with a reset probability of 0.15 and a tolerance of 0.01.
+    - This function assumes that the input graph is a valid GraphFrame object.
+
+    """
+    PageRankGraph = G.pageRank(resetProbability=0.15, tol=0.01)
+    PageRank_df = PageRankGraph.vertices.select("id", "pagerank")
+    return PageRank_df
