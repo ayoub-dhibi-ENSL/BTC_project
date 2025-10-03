@@ -1,9 +1,4 @@
 # 🪙 BTC Project
-
-<p align="center">
-  <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=029" alt="BTC Logo" width="120"/>
-</p>
-
 ---
 
 ## 📌 Project Goals
