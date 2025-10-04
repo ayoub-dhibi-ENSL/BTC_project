@@ -1,0 +1,19 @@
+name: BTC_project
+channels:
+  - conda-forge
+  - defaults
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/r
+dependencies:
+  - matplotlib-inline=0.1.7
+  - numpy=2.2
+  - pandas=2.3
+  - python=3.10
+  - python-igraph=0.11
+  - sqlite=3.5
+  - pip:
+      - graphframes-py==0.9
+      - matplotlib==3.10
+      - pyarrow==21.0
+      - pyspark==4.0
+prefix: /home/the-batman/anaconda3/envs/BTC_project

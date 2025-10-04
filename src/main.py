@@ -1,8 +1,9 @@
+# %%
 import compute_centralities as cc
 import pyspark.pandas as ps  # type: ignore
 from pyspark.sql import SparkSession  # type: ignore
-import matplotlib.pyplot as plt  # type: ignore
 
+# %%
 spark = (
     SparkSession.builder.appName("PandasOnSparkExample")
     .config("spark.sql.ansi.enabled", "false")  # disable ANSI mode
@@ -24,50 +25,50 @@ spark = (
 
 pydf = ps.read_csv("../data/orbitaal-snapshot-2016_07_09.csv")
 
-OUT_DEGREE, IN_DEGREE = cc.create_degree_col(pydf, "SRC_ID", "DST_ID")
-WEIGHTED_SATOSHI_OUT_DEGREE, WEIGHTED_SATOSHI_IN_DEGREE = cc.create_degree_col(
-    pydf, "SRC_ID", "DST_ID", weighted=True, weight_colname="VALUE_SATOSHI"
-)
-WEIGHTED_USD_OUT_DEGREE, WEIGHTED_USD_IN_DEGREE = cc.create_degree_col(
-    pydf, "SRC_ID", "DST_ID", weighted=True, weight_colname="VALUE_USD"
-)
+# OUT_DEGREE, IN_DEGREE = cc.create_degree_col(pydf, "SRC_ID", "DST_ID")
+# WEIGHTED_SATOSHI_OUT_DEGREE, WEIGHTED_SATOSHI_IN_DEGREE = cc.create_degree_col(
+#     pydf, "SRC_ID", "DST_ID", weighted=True, weight_colname="VALUE_SATOSHI"
+# )
+# WEIGHTED_USD_OUT_DEGREE, WEIGHTED_USD_IN_DEGREE = cc.create_degree_col(
+#     pydf, "SRC_ID", "DST_ID", weighted=True, weight_colname="VALUE_USD"
+# )
 
-degree_columns = [
-    OUT_DEGREE,
-    IN_DEGREE,
-    WEIGHTED_SATOSHI_OUT_DEGREE,
-    WEIGHTED_SATOSHI_IN_DEGREE,
-    WEIGHTED_USD_OUT_DEGREE,
-    WEIGHTED_USD_IN_DEGREE,
-]
+# degree_columns = [
+#     OUT_DEGREE,
+#     IN_DEGREE,
+#     WEIGHTED_SATOSHI_OUT_DEGREE,
+#     WEIGHTED_SATOSHI_IN_DEGREE,
+#     WEIGHTED_USD_OUT_DEGREE,
+#     WEIGHTED_USD_IN_DEGREE,
+# ]
 
-for col in degree_columns:
-    col.index.name = None
+# for col in degree_columns:
+#     col.index.name = None
 
-result = ps.concat(degree_columns, axis=1).fillna(0)
+# result = ps.concat(degree_columns, axis=1).fillna(0)
 
-result_pd = result.to_pandas()
+# result_pd = result.to_pandas()
 
-for col in result_pd.columns:
-    plt.figure(figsize=(8, 4))
-    plt.hist(result_pd[col], bins=50, color="skyblue", edgecolor="black", log=True)
-    plt.title(f"Histogram of {col}")
-    plt.xlabel(col)
-    plt.ylabel("Frequency (log scale)")
-    plt.tight_layout()
-    plt.show()
+# for col in result_pd.columns:
+#     plt.figure(figsize=(8, 4))
+#     plt.hist(result_pd[col], bins=50, color="skyblue", edgecolor="black", log=True)
+#     plt.title(f"Histogram of {col}")
+#     plt.xlabel(col)
+#     plt.ylabel("Frequency (log scale)")
+#     plt.tight_layout()
+#     plt.show()
 
 
 IDS, number_of_nodes, graph_density = cc.get_vertices_and_density(
     pydf, "SRC_ID", "DST_ID"
 )
 
-
 G, VERTICES, EDGES = cc.pydf_to_graphframe(pydf, IDS, "SRC_ID", "DST_ID")
+# triangles_df = cc.get_triangles(G)
 
-result = G.connectedComponents()
-connectedConmponents_df = result.select("id", "component")
+# max_triangles_df =
+# Local clustering coefficient
 
-
-result2 = G.stronglyConnectedComponents(maxIter=2)
-SCC = result2.select("id", "component").orderBy("component")
+# %%
+INDEG = G.inDegrees
+# %%

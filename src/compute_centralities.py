@@ -158,3 +158,10 @@ def pydf_to_graphframe(pydf, IDS, src_colname, dst_colname):
     )  # Renaming columns according to graphframes doc
     G = GraphFrame(VERTICES, EDGES)
     return G, VERTICES, EDGES
+
+
+def get_triangles(G):
+    # This algorithm ignores edge direction; i.e., all edges are treated as undirected. In a multigraph, duplicate edges will be counted only once.
+    trianglesGraph = G.triangleCount()
+    triangles_df = trianglesGraph.select("id", "count")
+    return triangles_df
