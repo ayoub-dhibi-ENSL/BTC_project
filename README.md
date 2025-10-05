@@ -1,18 +1,16 @@
 # 🪙 BTC Project
 ---
 
-## 📌 Project Goals
+## Project Goals
 
-1. **Model the Bitcoin (BTC) blockchain as a graph.**
-2. **Study the properties of this graph using tools from the Complex Networks course.**
-3. **Explore the detection of signals associated with major crypto events**  
-   (e.g., exchange hacks, political decisions) by analyzing variations in these properties using ML, GNN, etc.
-4. **Compare the evolution of BTC price to a Black–Scholes-type model**  
-   (Langevin equation), applying concepts from the Advanced Statistical Physics course.
-
+1. Model the Bitcoin blockchain as a dynamic graph; analyze structural properties with **network theory**.
+2. Applie **ML and GNNs** to detect signals linked to major crypto events (hacks, regulation).
+3. Compare BTC price dynamics to **stochastic models** (Langevin/Black–Scholes).
+4. Implement using best practices in scientific software development (modular code, version control, reproducibility).
+        
 ---
 
-## 🎯 Project Overview
+## Project Overview
 
 This project combines **graph theory**, **machine learning**, and **statistical physics** to analyze and understand the **dynamics of the Bitcoin blockchain** and its **response to significant events** in the cryptocurrency world.  
 
@@ -20,6 +18,6 @@ By modeling the blockchain as a complex network and studying its evolution, the 
 
 ---
 
-## 📜 License
+## License
 
 This project is licensed under the [MIT License](https://choosealicense.com/licenses/mit/).

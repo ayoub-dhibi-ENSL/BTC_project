@@ -1,7 +1,8 @@
 # %%
-import compute_centralities as cc
-import pyspark.pandas as ps  # type: ignore
 from pyspark.sql import SparkSession  # type: ignore
+from pyspark.sql.types import StructType, StructField, IntegerType, DoubleType, LongType  # type: ignore
+from utils import sparkDataframe_to_GraphFrame
+from centralities import get_degrees, get_triangle_centralities
 
 # %%
 spark = (
@@ -16,59 +17,23 @@ spark = (
     .getOrCreate()
 )
 
-# pydf_snapshot_year_2015 = ps.read_parquet(
-#     "../data/orbitaal-snapshot-year/SNAPSHOT/EDGES/year/*2015*.parquet"
-# )
-# pydf_snapshot_year_2015 = pydf_snapshot_year_2015.sample(
-#     frac=0.0001, random_state=42
-# )  # Sample x% of the data
-
-pydf = ps.read_csv("../data/orbitaal-snapshot-2016_07_09.csv")
-
-# OUT_DEGREE, IN_DEGREE = cc.create_degree_col(pydf, "SRC_ID", "DST_ID")
-# WEIGHTED_SATOSHI_OUT_DEGREE, WEIGHTED_SATOSHI_IN_DEGREE = cc.create_degree_col(
-#     pydf, "SRC_ID", "DST_ID", weighted=True, weight_colname="VALUE_SATOSHI"
-# )
-# WEIGHTED_USD_OUT_DEGREE, WEIGHTED_USD_IN_DEGREE = cc.create_degree_col(
-#     pydf, "SRC_ID", "DST_ID", weighted=True, weight_colname="VALUE_USD"
-# )
-
-# degree_columns = [
-#     OUT_DEGREE,
-#     IN_DEGREE,
-#     WEIGHTED_SATOSHI_OUT_DEGREE,
-#     WEIGHTED_SATOSHI_IN_DEGREE,
-#     WEIGHTED_USD_OUT_DEGREE,
-#     WEIGHTED_USD_IN_DEGREE,
-# ]
-
-# for col in degree_columns:
-#     col.index.name = None
-
-# result = ps.concat(degree_columns, axis=1).fillna(0)
-
-# result_pd = result.to_pandas()
-
-# for col in result_pd.columns:
-#     plt.figure(figsize=(8, 4))
-#     plt.hist(result_pd[col], bins=50, color="skyblue", edgecolor="black", log=True)
-#     plt.title(f"Histogram of {col}")
-#     plt.xlabel(col)
-#     plt.ylabel("Frequency (log scale)")
-#     plt.tight_layout()
-#     plt.show()
-
-
-IDS, number_of_nodes, graph_density = cc.get_vertices_and_density(
-    pydf, "SRC_ID", "DST_ID"
-)
-
-G, VERTICES, EDGES = cc.pydf_to_graphframe(pydf, IDS, "SRC_ID", "DST_ID")
-# triangles_df = cc.get_triangles(G)
-
-# max_triangles_df =
-# Local clustering coefficient
+path = "../data/orbitaal-snapshot-2016_07_09.csv"
+schema = StructType(
+    [
+        StructField("SRC_ID", IntegerType(), True),
+        StructField("DST_ID", IntegerType(), True),
+        StructField("VALUE_SATOSHI", LongType(), True),
+        StructField("VALUE_USD", DoubleType(), True),
+    ]
+)  # providing the schema makes the loading of the file faster
+df = spark.read.csv(path, header=True, inferSchema=False, schema=schema)
 
 # %%
-INDEG = G.inDegrees
+G = sparkDataframe_to_GraphFrame(df, "SRC_ID", "DST_ID")
+
+# %%
+all_degrees_df = get_degrees(G)
+degrees_df = all_degrees_df.select("id", "degree")
+test_df = get_triangle_centralities(G, degrees_df, return_avg_and_global_cc=True)
+
 # %%
