@@ -34,6 +34,8 @@ G = sparkDataframe_to_GraphFrame(df, "SRC_ID", "DST_ID")
 # %%
 all_degrees_df = get_degrees(G)
 degrees_df = all_degrees_df.select("id", "degree")
-test_df = get_triangle_centralities(G, degrees_df, return_avg_and_global_cc=True)
+test_df, test_cc = get_triangle_centralities(
+    G, degrees_df, return_avg_and_global_cc=True
+)
 
 # %%

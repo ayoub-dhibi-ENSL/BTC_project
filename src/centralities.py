@@ -15,8 +15,12 @@ def get_degrees(G):
         A DataFrame containing columns 'id', 'inDegree', 'outDegree', and 'degree' for each node.
         Nodes with zero in-degree or out-degree are included with degree values set to 0.
     """
-    in_degrees = G.inDegrees
-    out_degrees = G.outDegrees
+    in_degrees = G.inDegrees.withColumn(
+        "inDegree", G.inDegrees["inDegree"].cast("double")
+    )
+    out_degrees = G.outDegrees.withColumn(
+        "outDegree", G.outDegrees["outDegree"].cast("double")
+    )  # cast to double to avoid 32-bit int overflow when computing degree based centralities
     all_degrees_df = in_degrees.join(out_degrees, on="id", how="full").na.fill(
         0
     )  # add nodes with 0 degree
