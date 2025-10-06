@@ -114,3 +114,11 @@ def get_triangle_centralities(G, degree_df, return_avg_and_global_cc=False):
             F.avg(triangles_df["lcc"]).alias("average_cc"),
         )  # creates a dataframe with one row and two columns containing gloabl and avg cc
         return triangles_df, avg_and_global_cc_df
+
+
+def get_density(G):
+    number_of_edges = G.edges.count()
+    number_of_vertices = G.vertices.count()
+    max_number_of_edges = number_of_vertices * (number_of_vertices - 1)
+    density = number_of_edges / max_number_of_edges
+    return density

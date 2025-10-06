@@ -52,3 +52,7 @@ def sparkDataframe_to_GraphFrame(df, src_colname, dst_colname):
     vertices_df = create_vertex_df(edges_df, "src", "dst", "id")
     G = GraphFrame(vertices_df, edges_df)
     return G
+
+
+def save_to_csv(df, file_path):
+    df.coalesce(1).write.csv(file_path, mode="overwrite", header=True)
