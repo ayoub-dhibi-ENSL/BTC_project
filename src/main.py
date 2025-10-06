@@ -33,43 +33,35 @@ schema = StructType(
 # path_csv = "../data/orbitaal-snapshot-2016_07_09.csv"
 # df = spark.read.csv(path_csv, header=True, inferSchema=False, schema=schema)
 # %%
-for i in range(1, 14):
-    year = 2000 + i
+for i in range(1, 7):
+    year = 2008 + i
     id = f"{i:02d}"
+    print(year)
     print(id)
     path_parquet = f"../data/orbitaal-snapshot-year/SNAPSHOT/EDGES/year/orbitaal-snapshot-date-{year}-file-id-{id}.snappy.parquet"
     df = spark.read.parquet(path_parquet, inferSchema=False, schema=schema)
 
-# %%
-path_parquet = "../data/orbitaal-snapshot-year/SNAPSHOT/EDGES/year/orbitaal-snapshot-date-2009-file-id-01.snappy.parquet"
-df = spark.read.parquet(path_parquet, inferSchema=False, schema=schema)
-# %%
-G = sparkDataframe_to_GraphFrame(df, "SRC_ID", "DST_ID")
+    G = sparkDataframe_to_GraphFrame(df, "SRC_ID", "DST_ID")
 
-all_degrees_df = get_degrees(G)
+    all_degrees_df = get_degrees(G)
 
-degrees_df = all_degrees_df.select("id", "degree")
-triangles_df, avg_and_global_cc_df = get_triangle_centralities(
-    G, degrees_df, return_avg_and_global_cc=True
-)
+    degrees_df = all_degrees_df.select("id", "degree")
+    triangles_df, avg_and_global_cc_df = get_triangle_centralities(
+        G, degrees_df, return_avg_and_global_cc=True
+    )
 
-d = get_density(G)
-scalar_centralities_df = avg_and_global_cc_df.withColumn("density", F.lit(d))
+    d = get_density(G)
+    scalar_centralities_df = avg_and_global_cc_df.withColumn("density", F.lit(d))
 
+    file_path_triangles = f"../data/snapshot-year-analysis/{year}-{id}/triangles/"
+    file_path_degrees = f"../data/snapshot-year-analysis/{year}-{id}/degrees/"
+    file_path_scalar = f"../data/snapshot-year-analysis/{year}-{id}/scalar/"
+    save_dict = {
+        file_path_degrees: all_degrees_df,
+        file_path_scalar: scalar_centralities_df,
+        file_path_triangles: triangles_df,
+    }
 
-# %%
-year = "2009"
-id = "01"
-file_path_triangles = f"../data/snapshot-year-analysis/{year}-{id}/triangles/"
-file_path_degrees = f"../data/snapshot-year-analysis/{year}-{id}/degrees/"
-file_path_scalar = f"../data/snapshot-year-analysis/{year}-{id}/scalar/"
-save_dict = {
-    file_path_degrees: all_degrees_df,
-    file_path_scalar: scalar_centralities_df,
-    file_path_triangles: triangles_df,
-}
-
-for file_path in save_dict:
-    df = save_dict[file_path]
-    save_to_csv(df, file_path)
-# %%
+    for file_path in save_dict:
+        df = save_dict[file_path]
+        save_to_csv(df, file_path)
