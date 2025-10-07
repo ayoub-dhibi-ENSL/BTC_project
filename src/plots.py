@@ -4,27 +4,51 @@ import glob
 
 
 def hist_plots(year, id):
+    """
+    Generates and saves histograms for triangle-related metrics from a CSV file for a given year and id.
+    The function reads triangle metrics (`triangles_count`, `triangles_max_count`, `lcc`) from a CSV file,
+    creates histograms for each metric, and overlays mean and median values on each plot. The resulting
+    figure is saved as a PDF file.
+    Parameters
+    ----------
+    year : int or str
+        The year corresponding to the dataset to be analyzed.
+    id : int or str
+        The identifier for the dataset snapshot.
+    Returns
+    -------
+    None
+        The function saves the histogram plots to a PDF file and does not return any value.
+    Notes
+    -----
+    - The CSV file is expected to be located at
+      "../data/snapshot-year-analysis/{year}-{id}/triangles/*.csv".
+    - The output PDF is saved to "../plots/{year}-{id}_histograms_with_mean_median.pdf".
+    - Requires pandas, matplotlib, and glob libraries.
+    """
     # file_path_scalar = glob.glob(
     #     f"../data/snapshot-year-analysis/{year}-{id}/scalar/*.csv"
     # )[0]
     file_path_triangles = glob.glob(
         f"../data/snapshot-year-analysis/{year}-{id}/triangles/*.csv"
     )[0]
-    # file_path_degrees = glob.glob(
-    #     f"../data/snapshot-year-analysis/{year}-{id}/degrees/*.csv"
-    # )[0]
+    file_path_degrees = glob.glob(
+        f"../data/snapshot-year-analysis/{year}-{id}/degrees/*.csv"
+    )[0]
 
     # scalar_centralities_df = pd.read_csv(file_path_scalar)
-    # all_degrees_df = pd.read_csv(file_path_degrees, index_col="id")
+    all_degrees_df = pd.read_csv(file_path_degrees, index_col="id")
     triangles_df = pd.read_csv(file_path_triangles, index_col="id")[
         ["triangles_count", "triangles_max_count", "lcc"]
     ]
 
-    # Assuming your DataFrame is called df
-    # Example: df = pd.read_csv("your_data.csv")
+    make_save_hist("degrees", all_degrees_df, year, id)
+    make_save_hist("triangles", triangles_df, year, id)
 
+
+def make_save_hist(name, df, year, id):
     # List numeric columns (optional: to skip non-numeric ones)
-    numeric_cols = triangles_df.columns
+    numeric_cols = df.columns
 
     # Set up subplots
     n_cols = 2  # adjust layout (e.g., 2 histograms per row)
@@ -36,7 +60,7 @@ def hist_plots(year, id):
     # Plot histograms
     for i, col in enumerate(numeric_cols):
         ax = axes[i]
-        data = triangles_df[col].dropna()
+        data = df[col].dropna()
 
         ax.hist(data, bins=50, color="skyblue", edgecolor="black", alpha=0.7)
 
@@ -66,17 +90,10 @@ def hist_plots(year, id):
     for j in range(i + 1, len(axes)):
         fig.delaxes(axes[j])
 
-    # Save the figure to a file
+    # Save the figure to a file.
     plt.tight_layout()
     plt.savefig(
-        f"../plots/{year}-{id}_histograms_with_mean_median.pdf", bbox_inches="tight"
+        f"../plots/{name}-{year}-{id}_histograms_with_mean_median.pdf",
+        bbox_inches="tight",
     )
     plt.close()
-
-
-for i in range(1, 7):
-    year = 2008 + i
-    id = f"{i:02d}"
-    print(year)
-    print(id)
-    hist_plots(year, id)
