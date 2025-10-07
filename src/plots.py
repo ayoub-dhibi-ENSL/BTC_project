@@ -42,6 +42,11 @@ def hist_plots(year, id):
         ["triangles_count", "triangles_max_count", "lcc"]
     ]
 
+    # remove isolated nodes
+    triangles_df = triangles_df[triangles_df != 0]
+    triangles_df = triangles_df[triangles_df < 5000]
+    all_degrees_df = all_degrees_df[all_degrees_df != 0]
+    all_degrees_df = all_degrees_df[all_degrees_df < 5000]
     make_save_hist("degrees", all_degrees_df, year, id)
     make_save_hist("triangles", triangles_df, year, id)
 
@@ -62,7 +67,7 @@ def make_save_hist(name, df, year, id):
         ax = axes[i]
         data = df[col].dropna()
 
-        ax.hist(data, bins=50, color="skyblue", edgecolor="black", alpha=0.7)
+        ax.hist(data, bins=250, color="skyblue", edgecolor="black", alpha=0.7, log=True)
 
         mean_val = data.mean()
         median_val = data.median()
@@ -82,7 +87,25 @@ def make_save_hist(name, df, year, id):
             label=f"Median = {median_val:.2e}",
         )
 
-        ax.set_title(f"Histogram of {col}")
+        # ax.set_xscale("log")
+        # ax.set_yscale("log")
+
+        if col == "lcc":
+            title = "Histogram of local clustering coefficient"
+
+        elif col == "triangles_count":
+            title = "Histogram of number of triangles the node is included in."
+
+        elif col == "triangles_max_count":
+            title = "Histogram of number of triangles the node could be included in."
+
+        elif col == "triangles_max_count":
+            title = "Histogram of number of triangles the node could be included in."
+
+        else:
+            title = f"Histogram of {col}"
+
+        ax.set_title(title)
         ax.legend()
         ax.grid(True, linestyle=":", alpha=0.6)
 
