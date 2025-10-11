@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import glob
 
 
-def hist_plots(year, id):
+def hist_plots(resolution, id):
     """
     Generates and saves histograms for triangle-related metrics from a CSV file for a given year and id.
     The function reads triangle metrics (`triangles_count`, `triangles_max_count`, `lcc`) from a CSV file,
@@ -11,8 +11,8 @@ def hist_plots(year, id):
     figure is saved as a PDF file.
     Parameters
     ----------
-    year : int or str
-        The year corresponding to the dataset to be analyzed.
+    resolution : int or str
+        The resolution (year or hour) corresponding to the dataset to be analyzed.
     id : int or str
         The identifier for the dataset snapshot.
     Returns
@@ -30,10 +30,10 @@ def hist_plots(year, id):
     #     f"../data/snapshot-year-analysis/{year}-{id}/scalar/*.csv"
     # )[0]
     file_path_triangles = glob.glob(
-        f"../data/snapshot-year-analysis/{year}-{id}/triangles/*.csv"
-    )[0]
+        f"../data/snapshot-year-analysis/{resolution}-{id}/triangles/*.csv"
+    )[0]  # returns a list so [0] returns a string
     file_path_degrees = glob.glob(
-        f"../data/snapshot-year-analysis/{year}-{id}/degrees/*.csv"
+        f"../data/snapshot-year-analysis/{resolution}-{id}/degrees/*.csv"
     )[0]
 
     # scalar_centralities_df = pd.read_csv(file_path_scalar)
@@ -47,11 +47,11 @@ def hist_plots(year, id):
     triangles_df = triangles_df[triangles_df < 5000]
     all_degrees_df = all_degrees_df[all_degrees_df != 0]
     all_degrees_df = all_degrees_df[all_degrees_df < 5000]
-    make_save_hist("degrees", all_degrees_df, year, id)
-    make_save_hist("triangles", triangles_df, year, id)
+    make_save_hist("degrees", all_degrees_df, resolution, id)
+    make_save_hist("triangles", triangles_df, resolution, id)
 
 
-def make_save_hist(name, df, year, id):
+def make_save_hist(name, df, resolution, id):
     # List numeric columns (optional: to skip non-numeric ones)
     numeric_cols = df.columns
 
@@ -116,7 +116,7 @@ def make_save_hist(name, df, year, id):
     # Save the figure to a file.
     plt.tight_layout()
     plt.savefig(
-        f"../plots/{name}-{year}-{id}_histograms_with_mean_median.pdf",
+        f"../plots/{name}-{resolution}-{id}_histograms_with_mean_median.pdf",
         bbox_inches="tight",
     )
     plt.close()

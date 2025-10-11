@@ -1,7 +1,7 @@
 <p align="center">
     <img src="images/logo.png" alt="BTC Project Logo" width="200" height="200">
 </p>
-<p align="right"><b style="font-size:2em;">v0.1</b></p>
+<p align="right"><b style="font-size:2em;">v0.0.1</b></p>
 
 ---
 
@@ -46,39 +46,66 @@ The blockchain data used in this project is sourced from [ORBITAAL](https://zeno
 ---
 
 ### Timeline
+- **Previous steps:**
+    - Build a GraphFrame API/Wrapper
+    - Build data pipeline (from .parquet to plots)
 
 - **Current Step:**  
-    Computing graph centralities (= features for GNN)
+    - Computing graph centralities (= features for GNN)
 
 - **Upcoming Steps:**  
     - Explore the correlations/mutual information between the centralities
     - Use graph embeddings to reduce dimensionnality
     - Build event detection module
     - Integrate price dynamics comparison
-    - Build visualization module
+    - Build visualization module w/ **streamlit**
     - Finalize documentation and reproducibility features  
 ---
 
 ### Usage
+To use the command-line interface, run:
 
-1. **Process the data from data/ and save to CSVs :**
-    ```bash
-    python3 src/main.py --C year_start year_end
-    ```  
-    Will process the data for the years betweem (inclusive) `year_start` and `year_end`.
-    <br>
-2. **Make the plots from the data in the CSVs and saves them in plots/ as PDFs :**
-    ```bash
-    python3 src/main.py --P year_start year_end
-    ```   
-    Only if the CSVs exist will make plots for the years betweem (inclusive) `year_start` and `year_end`.  
-    <br>
-3. **Process the data from data/ and save to CSVs, then make the plots from the data in the CSVs and saves them as PDFs :**
-    ```bash
-    python3 src/main.py --B year_start year_end
-    ```
-The `main.py` script includes help message (`-h` or `--help`) for more details.
+```bash
+python3 main.py [-h] [-r] (-c | -p | -b)
+```
 
+Key options (choose one):
+
+- `-c`, `--compute`  
+    Process the data from ../data/ and save to CSVs.
+
+- `-p`, `--plot`  
+    Make plots from the CSVs in ../data/ and save them in ../plots/.
+
+- `-b`, `--both`  
+    Process the data from ../data/ and save to CSVs, then make the plots from the CSVs and save them.
+
+Optional:
+
+- `-r`, `--resolution (hour | year)`  
+    Set the resolution of the snapshots (default: year).
+
+**Examples:**
+
+Process data for yearly snapshots:
+```bash
+python3 main.py -c -r year
+```
+
+Plot from existing CSVs for hourly snapshots:
+```bash
+python3 main.py -p -r hour
+```
+
+Process and plot in one step:
+```bash
+python3 main.py -b -r year
+```
+
+For more options and details, use the help flag:
+```bash
+python3 main.py --help
+```
 ---
 
 ### Support
