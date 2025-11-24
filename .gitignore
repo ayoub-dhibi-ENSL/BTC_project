@@ -1,7 +1,6 @@
 # Custom
 notebooks/logs*
 data/*
-tests/
 plots/*
 note.txt
 ## Python related
