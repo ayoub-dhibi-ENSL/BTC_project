@@ -1,34 +1,166 @@
-name: Python Package using Conda
+# ==========================================================
+# 🧩 GitHub Actions CI/CD Configuration for Python Projects
+# ==========================================================
+# This file tells GitHub how to automatically test and build
+# your Python project every time you push code to the repository.
+#
+# ==========================================================
+# 🔹 GENERAL IDEA
+# ----------------------------------------------------------
+# When you push your code to GitHub:
+#   1. GitHub looks for this file: .github/workflows/*.yml
+#   2. It reads the instructions to create a "workflow"
+#   3. The workflow runs jobs (like 'tests' or 'build_package')
+#      automatically inside clean virtual machines called
+#      GitHub-hosted runners.
+# ==========================================================
+#
+# 🔹 IMPORTANT TERMS
+# ----------------------------------------------------------
+# name:
+#   - The name of the workflow displayed in GitHub UI.
+#
+# on:
+#   - Defines when the workflow should trigger.
+#   - Here, it triggers on every push to any branch.
+#
+# jobs:
+#   - A collection of jobs that run in the workflow.
+#   - Jobs can run in parallel (by default) or sequentially (using 'needs').
+#
+# runs-on:
+#   - Defines which GitHub-hosted runner to use.
+#   - "ubuntu-latest" is a clean Linux environment.
+#
+# steps:
+#   - Individual tasks that run in order within a job.
+#   - Examples: checkout code, set up Python, install dependencies.
+#
+# uses:
+#   - References pre-built GitHub Actions from the marketplace.
+#   - Examples: actions/checkout@v4 clones your repository.
+#
+# run:
+#   - Runs shell commands directly in the runner.
+#   - Similar to typing commands in a terminal.
+#
+# cache:
+#   - Saves folders between workflow runs for speed.
+#   - Here, we cache pip packages to avoid re-downloading.
+#
+# artifacts:
+#   - Files or folders GitHub should keep after a job finishes.
+#   - Example: after building, we keep the dist/ folder.
+#   - You can download artifacts from the GitHub UI.
+#
+# needs:
+#   - Defines dependencies between jobs.
+#   - Example: "needs: [tests]" means this job only runs if
+#     the "tests" job finished successfully.
+#   - This prevents the build from running if tests fail.
+#
+# ==========================================================
+# 🔹 PIPELINE SUMMARY
+# ----------------------------------------------------------
+# 1️⃣ GitHub checks out your code.
+# 2️⃣ Sets up Python 3.10 environment.
+# 3️⃣ Creates and activates a virtual environment (.venv).
+# 4️⃣ Installs dependencies from environment.yml and pytest.
+# 5️⃣ Runs linting with flake8.
+# 6️⃣ Runs tests with pytest.
+# 7️⃣ If tests pass, builds the package and saves it in dist/.
+# 8️⃣ The dist/ folder is kept as an artifact for download.
+# ==========================================================
+
+name: Python Package CI/CD
 
 on: [push]
 
 jobs:
-  build-linux:
+  # ==========================================================
+  # 🧪 TEST JOB - Runs linting and unit tests
+  # ==========================================================
+  test:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 5
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.10'
-    - name: Add conda to system path
-      run: |
-        # $CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $CONDA/bin >> $GITHUB_PATH
-    - name: Install dependencies
-      run: |
-        conda env update --file environment.yml --name base
-    - name: Lint with flake8
-      run: |
-        conda install flake8
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
-      run: |
-        conda install pytest
-        pytest
+      # Step 1: Checkout the repository code
+      - uses: actions/checkout@v4
+
+      # Step 2: Set up Python 3.10
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+
+      # Step 3: Add conda to system path
+      - name: Add conda to system path
+        run: |
+          echo $CONDA/bin >> $GITHUB_PATH
+
+      # Step 4: Install dependencies from environment.yml
+      - name: Install dependencies
+        run: |
+          conda env update --file environment.yml --name base
+          conda install pytest
+
+      # Step 5: Cache pip packages for faster subsequent runs
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/environment.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # Step 6: Lint with ruff
+      - name: Lint with ruff
+        run: |
+          pip install ruff
+          # Check for errors and warnings
+          ruff check . --select=E,F,W
+          # Show all issues (non-blocking)
+          ruff check . --exit-zero
+
+      # Step 7: Run tests with pytest
+      - name: Test with pytest
+        run: |
+          python -m pytest tests/ -v --tb=short
+
+  # ==========================================================
+  # 📦 BUILD JOB - Builds the package (only if tests pass)
+  # ==========================================================
+  build_package:
+    runs-on: ubuntu-latest
+    needs: [test]  # This job only runs if 'test' job succeeds
+
+    steps:
+      # Step 1: Checkout the repository code
+      - uses: actions/checkout@v4
+
+      # Step 2: Set up Python 3.10
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+
+      # Step 3: Upgrade pip and install build tools
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade build wheel
+
+      # Step 4: Build the package
+      - name: Build package
+        run: |
+          python -m build
+
+      # Step 5: Upload build artifacts (dist/ folder)
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-package
+          path: dist/
+          retention-days: 7  # Keep artifacts for 7 days

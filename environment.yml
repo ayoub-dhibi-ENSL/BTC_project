@@ -16,3 +16,5 @@ dependencies:
   - pyarrow==21.0
   - pyspark==4.0
   - streamlit==1.5
+  - pytest=7.4
+  - pytest-cov=4.1
