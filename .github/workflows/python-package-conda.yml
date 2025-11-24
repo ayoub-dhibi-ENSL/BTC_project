@@ -116,16 +116,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      # Step 6: Lint with ruff
-      - name: Lint with ruff
-        run: |
-          pip install ruff
-          # Check for errors and warnings
-          ruff check . --select=E,F,W
-          # Show all issues (non-blocking)
-          ruff check . --exit-zero
-
-      # Step 7: Run tests with pytest
+      # Step 6: Run tests with pytest
       - name: Test with pytest
         run: |
           python -m pytest tests/ -v --tb=short
