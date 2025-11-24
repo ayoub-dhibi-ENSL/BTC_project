@@ -104,6 +104,8 @@ jobs:
       - name: Install dependencies
         run: |
           conda env update --file environment.yml --name base
+          conda activate base
+          conda list
           conda install pytest
 
       # Step 5: Cache pip packages for faster subsequent runs

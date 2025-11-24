@@ -1,7 +1,7 @@
 <p align="center">
     <img src="images/logo.png" alt="BTC Project Logo" width="200" height="200">
 </p>
-<p align="right"><b style="font-size:2em;">v0.0.1</b></p>
+<p align="right"><b style="font-size:2em;">v0.0.2</b></p>
 
 ---
 
@@ -49,6 +49,11 @@ The blockchain data used in this project is sourced from [ORBITAAL](https://zeno
 - **Previous steps:**
     - Build a GraphFrame API/Wrapper
     - Build data pipeline (from .parquet to plots)
+    - Implement KL divergence for comparison between snapshots
+- **Ongoing:**
+    - Prepare the project to scale on full data
+- **Future steps:**
+    - Implement ML pipeline to fit/extrapolate dynamic changes
 
 ---
 
