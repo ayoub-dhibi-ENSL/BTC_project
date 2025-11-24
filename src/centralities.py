@@ -1,4 +1,5 @@
-from pyspark.sql import functions as F  # type: ignore
+from pyspark.sql import functions as F
+# from utils import normalize_cols
 
 
 def get_degrees(G):
@@ -27,6 +28,9 @@ def get_degrees(G):
     all_degrees_df = all_degrees_df.withColumn(
         "degree", all_degrees_df.inDegree + all_degrees_df.outDegree
     )
+    # all_degrees_df = normalize_cols(
+    #     all_degrees_df, cols=["inDegree", "outDegree", "degree"]
+    # )
     return all_degrees_df
 
 
@@ -102,7 +106,9 @@ def get_triangle_centralities(G, degree_df, return_avg_and_global_cc=False):
     ).na.fill(
         0
     )  # creates a column with the local clustering coefficients for each vertex
-
+    # triangles_df = normalize_cols(
+    #     triangles_df, cols=["triangles_count", "degree", "triangles_max_count", "lcc"]
+    # )
     if not return_avg_and_global_cc:
         return triangles_df
     else:
@@ -117,6 +123,26 @@ def get_triangle_centralities(G, degree_df, return_avg_and_global_cc=False):
 
 
 def get_density(G):
+    """
+    Computes the density of the given graph.
+
+    The density is the ratio of the number of edges to the maximum possible
+    number of edges in the graph.
+
+    Parameters
+    ----------
+    G : GraphFrame
+        The input graph as a GraphFrame object.
+
+    Returns
+    -------
+    float
+        The density of the graph, a value between 0 and 1.
+
+    Notes
+    -----
+    Density is calculated as: edges / (vertices * (vertices - 1))
+    """
     number_of_edges = G.edges.count()
     number_of_vertices = G.vertices.count()
     max_number_of_edges = number_of_vertices * (number_of_vertices - 1)

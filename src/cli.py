@@ -22,9 +22,16 @@ def get_arguments():
         "-r",
         "--resolution",
         choices=["hour", "year"],
-        default="year",
+        default="hour",
         metavar="",
         help="Resolution of the snapshots (choices: %(choices)s) [default: %(default)s]",
+    )
+
+    parser.add_argument(
+        "-s",
+        "--sample",
+        action="store_true",
+        help="Runs the program on a sample of the snapshots for the chosen resolution (20 snapshots if resolution = hour, 2 snapshots if resolution = year) [default: %(default)s]",
     )
 
     group = parser.add_mutually_exclusive_group(required=True)

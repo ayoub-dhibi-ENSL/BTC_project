@@ -40,26 +40,16 @@ The blockchain data used in this project is sourced from [ORBITAAL](https://zeno
     ```
 
 3. **Set Up Data:**
-    The current version of the project uses the yearly snapshots `orbitaal-snapshot-year.tar.gz` (23.1 GB) from [ORBITAAL](https://zenodo.org/records/12581515). Download and extract the data in the `data/` directory, you should get 13 parquet files under `/data/orbitaal-snapshot-year/SNAPSHOT/EDGES/year/`.
+    The current version of the project uses the yearly and hourly snapshots `orbitaal-snapshot-year.tar.gz` (23.1 GB) and `orbitaal-snapshot-hour.tar.gz` (26.9 GB) from [ORBITAAL](https://zenodo.org/records/12581515). Download and extract the data in the `data/` directory, you should get 13 parquet files under `/data/orbitaal-snapshot-year/SNAPSHOT/EDGES/year/` and 104823 parquet files under `/data/orbitaal-snapshot-year/SNAPSHOT/EDGES/hour/`.
     
 
 ---
 
-### Timeline
+### Roadmap
 - **Previous steps:**
     - Build a GraphFrame API/Wrapper
     - Build data pipeline (from .parquet to plots)
 
-- **Current Step:**  
-    - Computing graph centralities (= features for GNN)
-
-- **Upcoming Steps:**  
-    - Explore the correlations/mutual information between the centralities
-    - Use graph embeddings to reduce dimensionnality
-    - Build event detection module
-    - Integrate price dynamics comparison
-    - Build visualization module w/ **streamlit**
-    - Finalize documentation and reproducibility features  
 ---
 
 ### Usage
@@ -72,7 +62,7 @@ python3 main.py [-h] [-r] (-c | -p | -b)
 Key options (choose one):
 
 - `-c`, `--compute`  
-    Process the data from ../data/ and save to CSVs.
+    Compute centralities statistics.
 
 - `-p`, `--plot`  
     Make plots from the CSVs in ../data/ and save them in ../plots/.
@@ -83,7 +73,7 @@ Key options (choose one):
 Optional:
 
 - `-r`, `--resolution (hour | year)`  
-    Set the resolution of the snapshots (default: year).
+    Set the resolution of the snapshots (default: hour).
 
 **Examples:**
 

@@ -1,36 +1,28 @@
-from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, IntegerType, DoubleType, LongType
 from pyspark.sql import functions as F
-from utils import sparkDataframe_to_GraphFrame, save_to_csv
+from utils import sparkDataframe_to_GraphFrame, save_to_csv, start_SparkSession
 from centralities import get_degrees, get_triangle_centralities, get_density
-from plots import hist_plots
+from plots import make_plots
 from cli import get_arguments
 import glob
 
 
-def start_SparkSession():
-    # Initialize SparkSession with custom configurations.
-    spark = (
-        SparkSession.builder.appName("BTC_project")
-        .config(
-            "spark.sql.ansi.enabled", "false"
-        )  # Disables ANSI SQL mode for compatibility.
-        .config(
-            "spark.jars.packages", "io.graphframes:graphframes-spark4_2.13:0.9.3"
-        )  # Loads the GraphFrames package for graph analytics.
-        .config(
-            "spark.graphframes.useLocalCheckpoints", "true"
-        )  # Enables local checkpoints for efficient graph algorithms.
-        .config(
-            "spark.driver.memory", "8g"
-        )  # Increases driver memory to handle large datasets.
-        .getOrCreate()
-    )
-    return spark
-
-
-def process_data(spark, resolution):
-    # res = year or hour
+def process_data(spark, resolution, arg_sample=False):
+    """
+    Processes transaction data from Parquet files, computes graph-based metrics, and saves results as CSV files.
+    Parameters
+    ----------
+    spark : pyspark.sql.SparkSession
+        The Spark session used to read Parquet files and perform distributed computations.
+    resolution : str
+        The time resolution of the data to process. Supported values are "year" and "hour".
+    Notes
+    -----
+    - Loads Parquet files matching the specified resolution.
+    - Converts transaction data into a GraphFrame.
+    - Computes node degrees, triangle centralities, and graph density.
+    - Saves the computed metrics (degrees, triangle centralities, scalar centralities) as CSV files in structured directories.
+    """
     schema = StructType(
         [
             StructField("SRC_ID", IntegerType(), True),
@@ -42,9 +34,14 @@ def process_data(spark, resolution):
 
     paths_parquet = glob.glob(
         f"../data/orbitaal-snapshot-{resolution}/SNAPSHOT/EDGES/{resolution}/orbitaal-snapshot-date-*-file-id-*.snappy.parquet"
-    )
+    )  # List of all the paths of the parquet files for the corresponding resolution.
+
+    if arg_sample and resolution == "hour":
+        paths_parquet = paths_parquet[:20]
+    elif arg_sample and resolution == "year":
+        paths_parquet = paths_parquet[:2]
+
     snapshots_count = len(paths_parquet)
-    # Loop through each year and corresponding file id to process the data.
     for i in range(snapshots_count):
         # Load the data from a parquet file to a pyspark.sql.DataFrame object.
         if resolution == "year":
@@ -75,10 +72,15 @@ def process_data(spark, resolution):
 
         # Saves the processed data in csv files.
         file_path_triangles = (
-            f"../data/snapshot-year-analysis/{resolution}-{id}/triangles/"
+            f"../data/snapshot-{resolution}-analysis/{resolution}-{id}/triangles/"
         )
-        file_path_degrees = f"../data/snapshot-year-analysis/{resolution}-{id}/degrees/"
-        file_path_scalar = f"../data/snapshot-year-analysis/{resolution}-{id}/scalar/"
+        file_path_degrees = (
+            f"../data/snapshot-{resolution}-analysis/{resolution}-{id}/degrees/"
+        )
+        file_path_scalar = (
+            f"../data/snapshot-{resolution}-analysis/{resolution}-{id}/scalar/"
+        )
+
         save_dict = {
             file_path_degrees: all_degrees_df,
             file_path_scalar: scalar_centralities_df,
@@ -90,29 +92,16 @@ def process_data(spark, resolution):
             save_to_csv(df, file_path)
 
 
-def make_plots(resolution):
-    paths_parquet = glob.glob(
-        f"../data/orbitaal-snapshot-{resolution}/SNAPSHOT/EDGES/{resolution}/orbitaal-snapshot-date-*-file-id-*.snappy.parquet"
-    )
-    snapshots_count = len(paths_parquet)
-    # Save plots of the processed data
-
-    for i in range(snapshots_count):
-        if resolution == "year":
-            id = f"{i:02d}"
-        elif resolution == "hour":
-            id = f"{i:06d}"
-
-        hist_plots(resolution, id)
-
-
-if __name__ == "__main__":
+def main():
+    print("Bitcoin Graph")
     args = get_arguments()
     resolution = args.resolution
+    arg_sample = args.sample
+
     if args.compute:
         print("Processing the data ...")
         spark = start_SparkSession()
-        process_data(spark, resolution)
+        process_data(spark, resolution, arg_sample)
 
     elif args.plot:
         print("Making plots and saving them ...")
@@ -121,5 +110,9 @@ if __name__ == "__main__":
     elif args.both:
         print("Processing the data, making the plots and svaing them ...")
         spark = start_SparkSession()
-        process_data(spark, resolution)
+        process_data(spark, resolution, arg_sample)
         make_plots(resolution)
+
+
+if __name__ == "__main__":
+    main()

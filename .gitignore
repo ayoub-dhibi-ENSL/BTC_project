@@ -3,7 +3,7 @@ notebooks/logs*
 data/*
 tests/
 plots/*
-
+note.txt
 ## Python related
 # Byte-compiled / optimized / DLL files
 __pycache__/
