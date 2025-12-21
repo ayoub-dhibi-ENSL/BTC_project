@@ -1,0 +1,22 @@
+/* Custom CSS for btc_graph documentation */
+
+/* Improve code block styling */
+.highlight {
+    border-radius: 4px;
+}
+
+/* Better table styling */
+table.docutils {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table.docutils td, table.docutils th {
+    padding: 8px;
+    border: 1px solid #ddd;
+}
+
+/* Style for badges */
+.badges img {
+    margin-right: 5px;
+}

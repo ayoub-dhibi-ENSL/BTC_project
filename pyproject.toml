@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "btc_graph"
-version = "0.0.1"
+version = "0.1.0"
 description = "Bitcoin blockchain graph modelling"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -26,8 +26,8 @@ Repository = "https://github.com/ayoub-dhibi-ENSL/BTC_project"
 Changelog = "https://github.com/ayoub-dhibi-ENSL/BTC_project/blob/main/CHANGELOG.md"
 
 [project.scripts]
-btc-graph = "btc_graph.main:main"
+btc-graph = "btc_graph.cli.main:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
 include = ["btc_graph*"]

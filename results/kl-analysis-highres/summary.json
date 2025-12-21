@@ -1,0 +1,11 @@
+{
+  "total_snapshots": 1048,
+  "date_range": "2009-01-07 to 2020-12-18",
+  "min_vertices": 2,
+  "max_vertices": 50256,
+  "min_edges": 1,
+  "max_edges": 77406,
+  "mean_density": 0.028496812226948266,
+  "mean_global_cc": 0.018122236590594764,
+  "mean_avg_cc": 0.09529574240600902
+}
