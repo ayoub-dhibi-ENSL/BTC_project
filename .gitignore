@@ -1,8 +1,10 @@
 # Custom
+*.json
 *.csv
 notebooks/logs*
 data/*
 plots/*
+results/*
 note.txt
 ## Python related
 # Byte-compiled / optimized / DLL files
