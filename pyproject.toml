@@ -4,26 +4,54 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "btc_graph"
-version = "0.1.0"
-description = "Bitcoin blockchain graph modelling"
+version = "0.2.0"
+description = "Bitcoin blockchain graph analysis with KL divergence tracking"
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
     { name = "Ayoub Dhibi", email = "ayoub.dhibi@ens-lyon.fr" },
 ]
-requires-python = ">=3.8"
-keywords = ["bitcoin", "blockchain", "graph", "graphframe"]
+requires-python = ">=3.10"
+keywords = ["bitcoin", "blockchain", "graph", "graphframe", "pyspark", "kl-divergence"]
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3 :: Only",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+    "numpy>=2.0",
+    "pandas>=2.0",
+    "scipy>=1.10",
+    "matplotlib>=3.8",
+    "seaborn>=0.13",
+    "pyspark>=4.0",
+    "graphframes-py>=0.9",
+    "python-igraph>=0.11",
+    "pyarrow>=15.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+    "sphinx-autodoc-typehints>=1.25",
+    "myst-parser>=2.0",
+    "nbsphinx>=0.9",
+    "sphinx-copybutton>=0.5",
 ]
 
 [project.urls]
-Documentation = "https://readthedocs.org"
+Documentation = "https://ayoub-dhibi-ENSL.github.io/BTC_project/"
 Repository = "https://github.com/ayoub-dhibi-ENSL/BTC_project"
-Changelog = "https://github.com/ayoub-dhibi-ENSL/BTC_project/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/ayoub-dhibi-ENSL/BTC_project/blob/main/docs/changelog.rst"
 
 [project.scripts]
 btc-graph = "btc_graph.cli.main:main"

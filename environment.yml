@@ -2,15 +2,37 @@ name: BTC_project
 channels:
   - conda-forge
   - defaults
-  - https://repo.anaconda.com/pkgs/main
-  - https://repo.anaconda.com/pkgs/r
 dependencies:
-  - matplotlib-inline=0.1.7
-  - numpy=2.2
-  - pandas=2.3
+  # Core Python
   - python=3.10
-  - python-igraph=0.11
-  - sqlite=3
-  - graphframes
-  - matplotlib==3.10
-  - pyarrow==21.0
+  
+  # Data processing
+  - numpy>=2.0
+  - pandas>=2.0
+  - pyarrow>=15.0
+  - scipy>=1.10
+  
+  # Graph analysis
+  - python-igraph>=0.11
+  - networkx>=3.0
+  
+  # Visualization
+  - matplotlib>=3.8
+  - matplotlib-inline>=0.1.6
+  - seaborn>=0.13
+  
+  # PySpark & GraphFrames
+  - pyspark>=4.0
+  - pip
+  
+  - pip:
+    # GraphFrames (not available on conda-forge for PySpark 4.x)
+    - graphframes-py>=0.9
+    
+    # Documentation (optional, for building docs)
+    - sphinx>=7.0
+    - sphinx-rtd-theme>=2.0
+    - sphinx-autodoc-typehints>=1.25
+    - myst-parser>=2.0
+    - nbsphinx>=0.9
+    - sphinx-copybutton>=0.5

@@ -111,8 +111,8 @@ For each event, the script generates:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/btc_graph.git
-cd btc_graph
+git clone https://github.com/ayoub-dhibi-ENSL/BTC_project.git
+cd BTC_project
 
 # Create conda environment
 conda env create -f environment.yml
@@ -223,7 +223,7 @@ scripts/                    # Analysis scripts
 
 ## Documentation
 
-Full documentation is available at [Read the Docs](https://btc-graph.readthedocs.io/) (coming soon).
+Full documentation is available at [GitHub Pages](https://ayoub-dhibi-ENSL.github.io/BTC_project/).
 
 To build documentation locally:
 
