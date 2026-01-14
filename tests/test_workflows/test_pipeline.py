@@ -2,21 +2,35 @@
 
 These tests verify the SnapshotAnalysisPipeline correctly orchestrates
 loading, processing, and exporting of snapshot data.
+Tests require PySpark and GraphFrames; they are skipped if not installed.
 """
 
 import tempfile
 from pathlib import Path
 
 import pytest
-from pyspark.sql import SparkSession
 
-from btc_graph.io import SNAPSHOT_SCHEMA
-from btc_graph.workflows.pipeline import AnalysisResult, SnapshotAnalysisPipeline
+# Check if PySpark and GraphFrames are available
+try:
+    from pyspark.sql import SparkSession
+    from graphframes import GraphFrame  # noqa: F401
+
+    SPARK_AVAILABLE = True
+except ImportError:
+    SPARK_AVAILABLE = False
+
+if SPARK_AVAILABLE:
+    from btc_graph.io import SNAPSHOT_SCHEMA
+    from btc_graph.workflows.pipeline import AnalysisResult, SnapshotAnalysisPipeline
 
 
 @pytest.fixture(scope="module")
-def spark() -> SparkSession:
+def spark() -> "SparkSession":
     """Create a test Spark session for the module."""
+    if not SPARK_AVAILABLE:
+        pytest.skip("PySpark or GraphFrames not installed")
+    from pyspark.sql import SparkSession
+
     session = (
         SparkSession.builder.appName("btc_graph_workflow_test")
         .master("local[1]")
@@ -52,6 +66,7 @@ def sample_df(spark: SparkSession):
     return spark.createDataFrame(data, schema=SNAPSHOT_SCHEMA)
 
 
+@pytest.mark.skipif(not SPARK_AVAILABLE, reason="PySpark/GraphFrames not installed")
 class TestSnapshotAnalysisPipeline:
     """Tests for SnapshotAnalysisPipeline class."""
 
@@ -98,6 +113,7 @@ class TestSnapshotAnalysisPipeline:
         assert graph.edges.count() == 5
 
 
+@pytest.mark.skipif(not SPARK_AVAILABLE, reason="PySpark/GraphFrames not installed")
 class TestComputeMetrics:
     """Tests for compute_metrics method."""
 
@@ -160,6 +176,7 @@ class TestComputeMetrics:
         assert row["density"] > 0
 
 
+@pytest.mark.skipif(not SPARK_AVAILABLE, reason="PySpark/GraphFrames not installed")
 class TestExportResult:
     """Tests for export_result method."""
 
@@ -199,6 +216,7 @@ class TestExportResult:
             assert len(csv_files) > 0
 
 
+@pytest.mark.skipif(not SPARK_AVAILABLE, reason="PySpark/GraphFrames not installed")
 class TestAnalyzeSingle:
     """Tests for analyze_single method."""
 
@@ -221,6 +239,7 @@ class TestAnalyzeSingle:
             assert result.degrees_df.count() == 4
 
 
+@pytest.mark.skipif(not SPARK_AVAILABLE, reason="PySpark/GraphFrames not installed")
 class TestAnalyzeBatch:
     """Tests for analyze_batch method."""
 
@@ -247,6 +266,7 @@ class TestAnalyzeBatch:
             assert results[2].snapshot_id == "hour-000002"
 
 
+@pytest.mark.skipif(not SPARK_AVAILABLE, reason="PySpark/GraphFrames not installed")
 class TestDiscoverSnapshots:
     """Tests for discover_snapshots method."""
 
@@ -295,6 +315,7 @@ class TestDiscoverSnapshots:
             assert "03" in paths[2]
 
 
+@pytest.mark.skipif(not SPARK_AVAILABLE, reason="PySpark/GraphFrames not installed")
 class TestAnalysisResult:
     """Tests for AnalysisResult dataclass."""
 
