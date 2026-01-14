@@ -84,16 +84,18 @@ def compute_degrees(graph: "GraphFrame") -> "SparkDataFrame":
     compute_triangle_centralities : Triangle-based centrality metrics.
     compute_pagerank : PageRank centrality.
     """
+    from pyspark.sql.functions import col
+
     # Compute in-degrees and cast to double to prevent overflow
     in_degrees = graph.inDegrees.withColumn(
         "inDegree",
-        graph.inDegrees["inDegree"].cast("double"),
+        col("inDegree").cast("double"),
     )
 
     # Compute out-degrees and cast to double to prevent overflow
     out_degrees = graph.outDegrees.withColumn(
         "outDegree",
-        graph.outDegrees["outDegree"].cast("double"),
+        col("outDegree").cast("double"),
     )
 
     # Full outer join to include all nodes, fill missing values with 0
@@ -102,7 +104,7 @@ def compute_degrees(graph: "GraphFrame") -> "SparkDataFrame":
     # Compute total degree as sum of in and out degrees
     all_degrees = all_degrees.withColumn(
         "degree",
-        all_degrees["inDegree"] + all_degrees["outDegree"],
+        col("inDegree") + col("outDegree"),
     )
 
     return all_degrees
