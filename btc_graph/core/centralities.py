@@ -84,18 +84,16 @@ def compute_degrees(graph: "GraphFrame") -> "SparkDataFrame":
     compute_triangle_centralities : Triangle-based centrality metrics.
     compute_pagerank : PageRank centrality.
     """
-    from pyspark.sql.functions import col
-
     # Compute in-degrees and cast to double to prevent overflow
     in_degrees = graph.inDegrees.withColumn(
         "inDegree",
-        col("inDegree").cast("double"),
+        graph.inDegrees["inDegree"].cast("double"),
     )
 
     # Compute out-degrees and cast to double to prevent overflow
     out_degrees = graph.outDegrees.withColumn(
         "outDegree",
-        col("outDegree").cast("double"),
+        graph.outDegrees["outDegree"].cast("double"),
     )
 
     # Full outer join to include all nodes, fill missing values with 0
@@ -104,7 +102,7 @@ def compute_degrees(graph: "GraphFrame") -> "SparkDataFrame":
     # Compute total degree as sum of in and out degrees
     all_degrees = all_degrees.withColumn(
         "degree",
-        col("inDegree") + col("outDegree"),
+        all_degrees["inDegree"] + all_degrees["outDegree"],
     )
 
     return all_degrees
@@ -251,17 +249,7 @@ def compute_triangle_centralities(
 
     # Count triangles for each vertex
     # Note: triangleCount treats the graph as undirected
-    # Handle API differences between GraphFrames versions
-    try:
-        # Newer GraphFrames (Spark 4.x) requires storage_level argument
-        from pyspark import StorageLevel
-
-        triangles_raw = graph.triangleCount(StorageLevel.MEMORY_AND_DISK).select(
-            "id", "count"
-        )
-    except TypeError:
-        # Older GraphFrames versions don't accept storage_level
-        triangles_raw = graph.triangleCount().select("id", "count")
+    triangles_raw = graph.triangleCount().select("id", "count")
     triangles_df = triangles_raw.withColumnRenamed("count", "triangles_count")
 
     # Join with degree information
