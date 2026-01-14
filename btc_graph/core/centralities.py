@@ -251,7 +251,17 @@ def compute_triangle_centralities(
 
     # Count triangles for each vertex
     # Note: triangleCount treats the graph as undirected
-    triangles_raw = graph.triangleCount().select("id", "count")
+    # Handle API differences between GraphFrames versions
+    try:
+        # Newer GraphFrames (Spark 4.x) requires storage_level argument
+        from pyspark import StorageLevel
+
+        triangles_raw = graph.triangleCount(StorageLevel.MEMORY_AND_DISK).select(
+            "id", "count"
+        )
+    except TypeError:
+        # Older GraphFrames versions don't accept storage_level
+        triangles_raw = graph.triangleCount().select("id", "count")
     triangles_df = triangles_raw.withColumnRenamed("count", "triangles_count")
 
     # Join with degree information
