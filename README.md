@@ -20,7 +20,7 @@ Built on PySpark and GraphFrames for scalable big data processing.
 
 ## Key Findings
 
-Our high-resolution analysis of **~1,048 hourly snapshots** (2009-2020) reveals how major crypto events impacted the Bitcoin network structure:
+Our high-resolution analysis of **~1,048 hourly snapshots** (2009-2021) reveals how major crypto events impacted the Bitcoin network structure:
 
 | Event | Date | Degree KL Change | Clustering KL Change |
 |-------|------|------------------|---------------------|
@@ -30,21 +30,46 @@ Our high-resolution analysis of **~1,048 hourly snapshots** (2009-2020) reveals 
 | **Silk Road Shutdown** | 2013-10-02 | -1% | -2% |
 | **Halving #3** | 2020-05-11 | +39% | +92% |
 
-*Negative change = distributions stabilized; Positive = more structural disruption*
 
 ---
 
 ## Features
 
 - **Graph Construction**: Build transaction graphs from blockchain snapshots
-- **Centrality Analysis**: Compute degree distributions, PageRank, and triangle centralities
+- **Centrality Analysis**: Compute degree distributions, PageRank, and triangle centralities (local clustering coefficient)
 - **KL Divergence Analysis**: Track distributional changes $D_{KL}(P_t \| P_{t+1})$ between consecutive snapshots
 - **Event Impact Analysis**: Quantify how major crypto events affect network structure
 - **Temporal Evolution**: Track how graph metrics evolve over time (2009-2020)
 - **Global Properties**: Monitor network density, clustering coefficient, and size
-- **Visualization**: Generate publication-ready plots with event markers and zoomed views
+- **Visualization**: Generate plots with event markers and zoomed views
 - **Scalable Processing**: Built on PySpark and GraphFrames for big data (104k+ snapshots)
 - **CLI Interface**: Easy-to-use command-line tools
+
+---
+
+## Installation
+
+### Set Up Conda Env
+
+```bash
+# Clone the repository
+git clone https://github.com/ayoub-dhibi-ENSL/BTC_project.git
+cd BTC_project
+
+# Create conda environment
+conda env create -f environment.yml
+conda activate BTC_project
+
+# Install package
+pip install -e ".[dev]"
+```
+### Set Up Data
+
+Download and extract the snapshots from ORBITAAL:
+- `orbitaal-snapshot-year.tar.gz` (23.1 GB) - Yearly snapshots
+- `orbitaal-snapshot-hour.tar.gz` (26.9 GB) - Hourly snapshots
+
+Extract to the `data/` directory.
 
 ---
 
@@ -105,31 +130,6 @@ For each event, the script generates:
 
 ---
 
-## Installation
-
-### Using Conda (Recommended)
-
-```bash
-# Clone the repository
-git clone https://github.com/ayoub-dhibi-ENSL/BTC_project.git
-cd BTC_project
-
-# Create conda environment
-conda env create -f environment.yml
-conda activate BTC_project
-
-# Install package
-pip install -e ".[dev]"
-```
-
-### Using pip
-
-```bash
-pip install -e .
-```
-
----
-
 ## Command Line Interface
 
 The package provides a CLI for common tasks:
@@ -150,20 +150,6 @@ btc-graph plot evolution \
 # Show package info
 btc-graph info
 ```
-
----
-
-## Data Source
-
-The blockchain data used in this project is sourced from [ORBITAAL](https://zenodo.org/records/12581515), which provides comprehensive datasets for Bitcoin transactions and addresses. More details about the methodology can be found on [arXiv](https://arxiv.org/html/2408.14147v1).
-
-### Setting Up Data
-
-Download and extract the snapshots from ORBITAAL:
-- `orbitaal-snapshot-year.tar.gz` (23.1 GB) - Yearly snapshots
-- `orbitaal-snapshot-hour.tar.gz` (26.9 GB) - Hourly snapshots
-
-Extract to the `data/` directory.
 
 ---
 
@@ -224,28 +210,6 @@ scripts/                    # Analysis scripts
 ## Documentation
 
 Full documentation is available at [GitHub Pages](https://ayoub-dhibi-ENSL.github.io/BTC_project/).
-
-To build documentation locally:
-
-```bash
-cd docs/
-pip install -r requirements.txt
-make html
-```
-
----
-
-## Testing
-
-```bash
-# Run all tests
-pytest tests/ -v
-
-# Run with coverage
-pytest tests/ --cov=btc_graph --cov-report=html
-```
-
-Current test coverage: 144 tests passing.
 
 ---
 
