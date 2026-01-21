@@ -65,9 +65,9 @@ pip install -e ".[dev]"
 ```
 ### Set Up Data
 
-Download and extract the snapshots from ORBITAAL:
+Download and extract the snapshots from [ORBITAAL](https://zenodo.org/records/12581515):
+
 - `orbitaal-snapshot-year.tar.gz` (23.1 GB) - Yearly snapshots
-- `orbitaal-snapshot-hour.tar.gz` (26.9 GB) - Hourly snapshots
 
 Extract to the `data/` directory.
 
